@@ -10,6 +10,10 @@
 [![R](https://img.shields.io/badge/R-ggplot2-276DC3?logo=r&logoColor=white)](https://ggplot2.tidyverse.org/)
 [![Licence MIT](https://img.shields.io/badge/Licence-MIT-16D695)](LICENSE)
 
+### [**→ Essayer la démo en ligne**](https://validstart.onrender.com)
+
+<sub>Hébergée sur une instance gratuite : le premier chargement après une période d'inactivité peut demander une trentaine de secondes, le temps que le serveur se réveille.</sub>
+
 </div>
 
 ---
@@ -141,6 +145,8 @@ install.packages("ggplot2")
 ---
 
 ## Déploiement
+
+L'application est déployée sur Render : **https://validstart.onrender.com**
 
 Le dépôt contient un fichier [`render.yaml`](render.yaml) permettant un déploiement en un clic sur [Render](https://render.com) :
 
