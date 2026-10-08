@@ -1,0 +1,15 @@
+# Configuration de deploiement Render (https://render.com)
+# Permet un deploiement en un clic via "New > Blueprint".
+services:
+  - type: web
+    name: validstart
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.4"
+      - key: FLASK_DEBUG
+        value: "0"

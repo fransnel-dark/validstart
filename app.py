@@ -18,6 +18,7 @@ Puis ouvrir :  http://127.0.0.1:5000
 import os
 import csv
 import json
+import shutil
 import sqlite3
 import subprocess
 
@@ -34,16 +35,38 @@ from calculs import calculer_viabilite, recommander_financeurs
 app = Flask(__name__)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, "database.db")
+
+# Emplacement de la base. Modifiable via DATABASE_PATH pour pointer vers
+# un disque persistant en production (sur Render : /var/data/database.db).
+DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(BASE_DIR, "database.db"))
 CHARTS_DIR = os.path.join(BASE_DIR, "static", "charts")
 
-# Chemin vers Rscript. Adaptez la version si necessaire.
-# Sous Windows : "C:/Program Files/R/R-4.5.2/bin/Rscript.exe"
-# Sous Linux/Mac : "Rscript" suffit s'il est dans le PATH.
-RSCRIPT_PATH = os.environ.get(
-    "RSCRIPT_PATH",
-    "C:/Program Files/R/R-4.5.2/bin/Rscript.exe"
-)
+
+def _chemin_rscript():
+    """
+    Localise l'executable Rscript.
+
+    Ordre de priorite :
+      1. la variable d'environnement RSCRIPT_PATH, si elle est definie ;
+      2. Rscript present dans le PATH (cas de Linux, macOS, et de Windows
+         lorsque R a ete ajoute au PATH) ;
+      3. l'emplacement d'installation par defaut sous Windows.
+
+    Si R est absent de la machine, la generation des graphiques echoue
+    proprement et le rapport s'affiche sans eux (voir generer_graphiques_r).
+    """
+    depuis_env = os.environ.get("RSCRIPT_PATH")
+    if depuis_env:
+        return depuis_env
+
+    dans_le_path = shutil.which("Rscript")
+    if dans_le_path:
+        return dans_le_path
+
+    return "C:/Program Files/R/R-4.5.2/bin/Rscript.exe"
+
+
+RSCRIPT_PATH = _chemin_rscript()
 
 
 # ---------------------------------------------------------------------------
@@ -296,9 +319,24 @@ def api_stats():
 
 
 # ---------------------------------------------------------------------------
-# Point d'entree
+# Initialisation
+# ---------------------------------------------------------------------------
+# La creation des tables se fait au chargement du module, et non uniquement
+# dans le bloc __main__ : en production l'application est lancee par un
+# serveur WSGI (gunicorn) qui importe "app" sans executer ce bloc.
+# init_db() repose sur CREATE TABLE IF NOT EXISTS : l'appel est sans effet
+# si la base existe deja.
+init_db()
+
+
+# ---------------------------------------------------------------------------
+# Point d'entree (developpement local uniquement)
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    init_db()
-    print("ValidStart demarre sur http://127.0.0.1:5000")
-    app.run(debug=True)
+    # Le mode debug facilite le developpement mais ne doit jamais etre actif
+    # en production : il expose la trace des erreurs. Il est desactivable
+    # avec FLASK_DEBUG=0.
+    mode_debug = os.environ.get("FLASK_DEBUG", "1") == "1"
+    port = int(os.environ.get("PORT", 5000))
+    print(f"ValidStart demarre sur http://127.0.0.1:{port}")
+    app.run(host="127.0.0.1", port=port, debug=mode_debug)

@@ -140,6 +140,25 @@ install.packages("ggplot2")
 
 ---
 
+## Déploiement
+
+Le dépôt contient un fichier [`render.yaml`](render.yaml) permettant un déploiement en un clic sur [Render](https://render.com) :
+
+**New → Blueprint → sélectionner ce dépôt → Apply.**
+
+Render lit la configuration, installe les dépendances et lance l'application avec gunicorn :
+
+```bash
+gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+```
+
+Deux limites propres à l'hébergement gratuit, assumées pour une démonstration :
+
+- **Pas de R sur le serveur** — les trois graphiques ggplot2 ne sont pas générés en ligne. L'appel étant *best-effort*, le rapport s'affiche normalement sans eux ; les graphiques interactifs Chart.js, eux, fonctionnent. En local avec R installé, les deux sont présents.
+- **Stockage éphémère** — la base SQLite est recréée au redémarrage de l'instance. Pour conserver l'historique, attacher un disque persistant et définir la variable `DATABASE_PATH=/var/data/database.db`.
+
+---
+
 ## Tests
 
 Le moteur de calcul se teste **sans lancer le serveur** :
