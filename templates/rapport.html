@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport ValidStart &mdash; {{ nom_projet }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='rapport.css') }}">
+    <script src="{{ url_for('static', filename='lib/chart.umd.min.js') }}"></script>
+</head>
+<body>
+
+    <div class="bg-decor">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/" class="logo">Valid<span>Start</span></a>
+            <a href="/" class="nav-link">&larr; Nouvelle analyse</a>
+        </div>
+    </nav>
+
+    <main class="rapport">
+
+        <!-- EN-TETE PROJET -->
+        <div class="rap-entete">
+            <div>
+                <div class="rap-meta">
+                    <span class="tag-secteur">{{ secteur }}</span>
+                    <span class="rap-ville">{{ ville }}</span>
+                </div>
+                <h1 class="rap-titre">{{ nom_projet }}</h1>
+            </div>
+        </div>
+
+        <!-- VERDICT -->
+        <section class="verdict verdict-{{ resultats.verdict }}">
+            <div class="verdict-icone">
+                {% if resultats.verdict == 'viable' %}&#10003;
+                {% elif resultats.verdict == 'risque' %}!
+                {% else %}&times;{% endif %}
+            </div>
+            <div class="verdict-texte">
+                <h2>
+                    {% if resultats.verdict == 'viable' %}Projet viable
+                    {% elif resultats.verdict == 'risque' %}Projet risque
+                    {% else %}Projet non viable{% endif %}
+                </h2>
+                <p>{{ resultats.message }}</p>
+            </div>
+        </section>
+
+        <!-- CHIFFRES CLES -->
+        <div class="sec-titre">Indicateurs cles</div>
+        <div class="cartes">
+            <div class="carte" style="--d:.05s">
+                <div class="carte-haut">
+                    <span class="carte-label">Chiffre d'affaires</span>
+                    <span class="carte-tag">/ mois</span>
+                </div>
+                <div class="carte-val val-compteur" data-val="{{ resultats.ca_mensuel }}">0</div>
+                <div class="carte-pied">FCFA en regime de croisiere</div>
+            </div>
+
+            <div class="carte" style="--d:.10s">
+                <div class="carte-haut">
+                    <span class="carte-label">Marge brute</span>
+                    <span class="carte-tag accent">{{ resultats.taux_marge }}%</span>
+                </div>
+                <div class="carte-val val-compteur" data-val="{{ resultats.marge_brute }}">0</div>
+                <div class="carte-pied">FCFA apres couts directs</div>
+            </div>
+
+            <div class="carte" style="--d:.15s">
+                <div class="carte-haut">
+                    <span class="carte-label">Resultat net</span>
+                    <span class="carte-tag {% if resultats.resultat_net >= 0 %}vert{% else %}rouge{% endif %}">
+                        {% if resultats.resultat_net >= 0 %}benefice{% else %}deficit{% endif %}
+                    </span>
+                </div>
+                <div class="carte-val val-compteur {% if resultats.resultat_net < 0 %}txt-rouge{% endif %}"
+                     data-val="{{ resultats.resultat_net }}">0</div>
+                <div class="carte-pied">FCFA / mois</div>
+            </div>
+
+            <div class="carte" style="--d:.20s">
+                <div class="carte-haut">
+                    <span class="carte-label">Point mort</span>
+                </div>
+                <div class="carte-val val-compteur" data-val="{{ resultats.point_mort or 0 }}">0</div>
+                <div class="carte-pied">FCFA de CA pour etre rentable</div>
+            </div>
+
+            <div class="carte" style="--d:.25s">
+                <div class="carte-haut">
+                    <span class="carte-label">Capital necessaire</span>
+                </div>
+                <div class="carte-val val-compteur" data-val="{{ resultats.capital_necessaire }}">0</div>
+                <div class="carte-pied">FCFA pour demarrer (3 mois + stock)</div>
+            </div>
+
+            <div class="carte {% if resultats.manque_capital > 0 %}carte-alerte{% endif %}" style="--d:.30s">
+                <div class="carte-haut">
+                    <span class="carte-label">Manque a financer</span>
+                </div>
+                <div class="carte-val val-compteur {% if resultats.manque_capital > 0 %}txt-rouge{% else %}txt-vert{% endif %}"
+                     data-val="{{ resultats.manque_capital }}">0</div>
+                <div class="carte-pied">
+                    {% if resultats.manque_capital > 0 %}FCFA a trouver{% else %}Capital suffisant{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- JAUGES -->
+        <div class="sec-titre">Sante du projet en un coup d'oeil</div>
+        <div class="jauges">
+            <div class="jauge-bloc">
+                <canvas id="jauge-marge" width="180" height="180"></canvas>
+                <div class="jauge-info">
+                    <span class="jauge-nom">Taux de marge</span>
+                    <span class="jauge-desc">Part du CA conservee apres couts directs</span>
+                </div>
+            </div>
+            <div class="jauge-bloc">
+                <canvas id="jauge-capital" width="180" height="180"></canvas>
+                <div class="jauge-info">
+                    <span class="jauge-nom">Couverture du capital</span>
+                    <span class="jauge-desc">Capital disponible vs. besoin de demarrage</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRAPHIQUES INTERACTIFS (Chart.js) -->
+        <div class="sec-titre">
+            Projection interactive
+            <span class="sec-pill">JavaScript</span>
+        </div>
+        <div class="graph-interactif">
+            <div class="graph-onglets">
+                <button class="onglet actif" data-vue="ca">Chiffre d'affaires</button>
+                <button class="onglet" data-vue="marge">Marge nette</button>
+                <button class="onglet" data-vue="treso">Tresorerie</button>
+            </div>
+            <div class="graph-canvas">
+                <canvas id="chart-principal"></canvas>
+            </div>
+        </div>
+
+        <!-- TABLEAU -->
+        <div class="sec-titre">Detail mois par mois</div>
+        <div class="tableau-wrap">
+            <table class="tableau">
+                <thead>
+                    <tr>
+                        <th>Mois</th>
+                        <th>Chiffre d'affaires</th>
+                        <th>Marge nette</th>
+                        <th>Tresorerie cumulee</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in resultats.projection_6mois %}
+                    {% set treso = resultats.cumul_tresorerie[loop.index0] %}
+                    <tr>
+                        <td><strong>Mois {{ p.mois }}</strong></td>
+                        <td>{{ "{:,}".format(p.ca).replace(',', ' ') }} F</td>
+                        <td class="{% if p.marge_nette >= 0 %}txt-vert{% else %}txt-rouge{% endif %}">
+                            {{ "{:,}".format(p.marge_nette).replace(',', ' ') }} F
+                        </td>
+                        <td class="{% if treso.solde >= 0 %}txt-vert{% else %}txt-rouge{% endif %}">
+                            {{ "{:,}".format(treso.solde).replace(',', ' ') }} F
+                        </td>
+                        <td>{% if p.marge_nette >= 0 %}&#9650;{% else %}&#9660;{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRAPHIQUES R -->
+        {% if graphiques_ok %}
+        <div class="sec-titre">
+            Visualisations statistiques
+            <span class="sec-pill r">R / ggplot2</span>
+        </div>
+        <div class="graphs-r">
+            <div class="graph-r"><img src="{{ url_for('static', filename='charts/graphique_ca.png') }}?v={{ range(1,99999)|random }}" alt="Evolution du CA"></div>
+            <div class="graph-r"><img src="{{ url_for('static', filename='charts/graphique_marge.png') }}?v={{ range(1,99999)|random }}" alt="Marge nette"></div>
+            <div class="graph-r"><img src="{{ url_for('static', filename='charts/graphique_treso.png') }}?v={{ range(1,99999)|random }}" alt="Tresorerie cumulee"></div>
+        </div>
+        {% endif %}
+
+        <!-- FINANCEURS -->
+        {% if financeurs %}
+        <div class="sec-titre">Financements adaptes a ton projet</div>
+        <div class="financeurs">
+            {% for f in financeurs %}
+            <div class="fin-carte" style="--d:{{ loop.index0 * 0.06 }}s">
+                <div class="fin-haut">
+                    <span class="fin-nom">{{ f.nom }}</span>
+                    <span class="fin-type">{{ f.type }}</span>
+                </div>
+                <p class="fin-cond">{{ f.conditions }}</p>
+                {% if f.montant_max and f.montant_max > 0 %}
+                <div class="fin-montant">
+                    Jusqu'a {{ "{:,}".format(f.montant_max|int).replace(',', ' ') }} FCFA
+                </div>
+                {% else %}
+                <div class="fin-montant accompagnement">Accompagnement &amp; mentorat</div>
+                {% endif %}
+                <a href="{{ f.lien }}" target="_blank" rel="noopener" class="fin-lien">
+                    Decouvrir &rarr;
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- ACTIONS -->
+        <div class="rap-actions">
+            <a href="/" class="btn-secondaire">&larr; Nouvelle simulation</a>
+            <button onclick="window.print()" class="btn-print">Imprimer le rapport</button>
+        </div>
+
+    </main>
+
+    <footer class="pied">
+        <p>ValidStart &middot; Projet L1 Big Data &middot; Dakar Institute of Technology &middot; 2026</p>
+    </footer>
+
+    <!-- Donnees injectees par Flask pour les graphiques JS -->
+    <script id="donnees" type="application/json">{{ donnees_json | safe }}</script>
+    <script>
+        window.VALIDSTART_DATA = JSON.parse(document.getElementById("donnees").textContent);
+        window.VALIDSTART_CAPITAL = {
+            disponible: {{ resultats.capital_disponible }},
+            necessaire: {{ resultats.capital_necessaire }},
+            taux_marge: {{ resultats.taux_marge }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='rapport.js') }}"></script>
+</body>
+</html>

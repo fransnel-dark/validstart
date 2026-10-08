@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ValidStart — Valide la viabilite de ton business</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- Fond decoratif anime -->
+    <div class="bg-decor">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/" class="logo">Valid<span>Start</span></a>
+            <a href="/historique" class="nav-link">Historique &rarr;</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="hero-badge">Outil d'aide a la decision &middot; Senegal</div>
+        <h1 class="hero-title">
+            Ton idee de business<br>
+            <span class="hl">est-elle viable ?</span>
+        </h1>
+        <p class="hero-sub">
+            Reponds a quelques questions. ValidStart calcule ta rentabilite,
+            ton point mort et t'oriente vers les financements adaptes &mdash;
+            le tout en moins de deux minutes.
+        </p>
+    </header>
+
+    <!-- FORMULAIRE -->
+    <main class="main-form">
+
+        {% if erreur %}
+        <div class="bandeau-erreur">{{ erreur }}</div>
+        {% endif %}
+
+        <form action="/calculer" method="POST" class="formulaire" id="form-validstart">
+
+            <!-- SECTION 1 -->
+            <section class="bloc" style="--delay:0.05s">
+                <div class="bloc-tete">
+                    <span class="num">1</span>
+                    <div>
+                        <h2>Ton projet</h2>
+                        <p>De quoi s'agit-il ?</p>
+                    </div>
+                </div>
+                <div class="grille">
+                    <div class="champ champ-large">
+                        <label for="nom_projet">Nom du projet</label>
+                        <input type="text" id="nom_projet" name="nom_projet"
+                               placeholder="Ex : Vente de chaussures importees" required>
+                    </div>
+                    <div class="champ">
+                        <label for="secteur">Secteur</label>
+                        <select id="secteur" name="secteur" required>
+                            <option value="">Choisir...</option>
+                            <option value="commerce">Commerce / Import-Export</option>
+                            <option value="restauration">Restauration</option>
+                            <option value="tech">Tech / Numerique</option>
+                            <option value="mode">Mode / Textile</option>
+                            <option value="sante">Sante / Beaute</option>
+                            <option value="education">Education</option>
+                            <option value="agriculture">Agriculture</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+                    <div class="champ">
+                        <label for="ville">Ville</label>
+                        <select id="ville" name="ville">
+                            <option value="Dakar">Dakar</option>
+                            <option value="Thies">Thies</option>
+                            <option value="Saint-Louis">Saint-Louis</option>
+                            <option value="Ziguinchor">Ziguinchor</option>
+                            <option value="Touba">Touba</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2 -->
+            <section class="bloc" style="--delay:0.10s">
+                <div class="bloc-tete">
+                    <span class="num">2</span>
+                    <div>
+                        <h2>Tes revenus</h2>
+                        <p>Combien et a quel prix vends-tu ?</p>
+                    </div>
+                </div>
+                <div class="grille">
+                    <div class="champ">
+                        <label for="prix_unitaire">Prix de vente unitaire</label>
+                        <div class="input-fcfa">
+                            <input type="number" id="prix_unitaire" name="prix_unitaire"
+                                   placeholder="25000" min="0" step="any" required>
+                            <span>FCFA</span>
+                        </div>
+                        <small>Prix paye par ton client pour une unite</small>
+                    </div>
+                    <div class="champ">
+                        <label for="quantite_mensuelle">Quantite vendue / mois</label>
+                        <div class="input-fcfa">
+                            <input type="number" id="quantite_mensuelle" name="quantite_mensuelle"
+                                   placeholder="30" min="1" required>
+                            <span>u.</span>
+                        </div>
+                        <small>Estimation prudente et realiste</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3 -->
+            <section class="bloc" style="--delay:0.15s">
+                <div class="bloc-tete">
+                    <span class="num">3</span>
+                    <div>
+                        <h2>Tes couts</h2>
+                        <p>Combien te coute ton activite ?</p>
+                    </div>
+                </div>
+                <div class="grille">
+                    <div class="champ">
+                        <label for="cout_variable">Cout d'achat unitaire</label>
+                        <div class="input-fcfa">
+                            <input type="number" id="cout_variable" name="cout_variable"
+                                   placeholder="12000" min="0" step="any" required>
+                            <span>FCFA</span>
+                        </div>
+                        <small>Prix fournisseur + import + transport</small>
+                    </div>
+                    <div class="champ">
+                        <label for="couts_fixes">Charges fixes mensuelles</label>
+                        <div class="input-fcfa">
+                            <input type="number" id="couts_fixes" name="couts_fixes"
+                                   placeholder="80000" min="0" step="any" required>
+                            <span>FCFA</span>
+                        </div>
+                        <small>Loyer + abonnements + salaires fixes</small>
+                    </div>
+                    <div class="champ">
+                        <label for="stock_initial">Stock initial <em>(optionnel)</em></label>
+                        <div class="input-fcfa">
+                            <input type="number" id="stock_initial" name="stock_initial"
+                                   placeholder="120000" min="0" step="any">
+                            <span>FCFA</span>
+                        </div>
+                        <small>Premier achat de marchandise</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4 -->
+            <section class="bloc" style="--delay:0.20s">
+                <div class="bloc-tete">
+                    <span class="num">4</span>
+                    <div>
+                        <h2>Ton capital</h2>
+                        <p>De combien disposes-tu pour lancer ?</p>
+                    </div>
+                </div>
+                <div class="grille">
+                    <div class="champ champ-large">
+                        <label for="capital_disponible">Capital disponible</label>
+                        <div class="input-fcfa">
+                            <input type="number" id="capital_disponible" name="capital_disponible"
+                                   placeholder="300000" min="0" step="any" required>
+                            <span>FCFA</span>
+                        </div>
+                        <small>L'argent dont tu disposes des aujourd'hui</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PREVISUALISATION TEMPS REEL -->
+            <section class="apercu" id="apercu" hidden>
+                <div class="apercu-tete">
+                    <span class="pulse"></span> Apercu instantane
+                </div>
+                <div class="apercu-grille">
+                    <div class="ap-carte">
+                        <span class="ap-label">CA mensuel</span>
+                        <span class="ap-val" id="ap-ca">&mdash;</span>
+                    </div>
+                    <div class="ap-carte">
+                        <span class="ap-label">Marge brute</span>
+                        <span class="ap-val" id="ap-marge">&mdash;</span>
+                    </div>
+                    <div class="ap-carte">
+                        <span class="ap-label">Taux de marge</span>
+                        <span class="ap-val" id="ap-taux">&mdash;</span>
+                    </div>
+                    <div class="ap-carte">
+                        <span class="ap-label">Resultat net</span>
+                        <span class="ap-val" id="ap-net">&mdash;</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SUBMIT -->
+            <div class="zone-submit">
+                <button type="submit" class="btn-go" id="btn-go">
+                    <span class="btn-txt">Analyser mon business</span>
+                    <span class="btn-arrow">&rarr;</span>
+                </button>
+                <p class="note-submit">
+                    Gratuit &middot; Resultats immediats &middot; Donnees confidentielles
+                </p>
+            </div>
+
+        </form>
+    </main>
+
+    <footer class="pied">
+        <p>ValidStart &middot; Projet L1 Big Data &middot; Dakar Institute of Technology &middot; 2026</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

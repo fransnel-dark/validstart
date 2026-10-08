@@ -1,0 +1,34 @@
+# Base de données générée au premier lancement
+*.db
+*.sqlite
+*.sqlite3
+
+# Graphiques et données générés par R
+static/charts/*.png
+static/charts/*.csv
+!static/charts/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+
+# Systèmes d'exploitation
+.DS_Store
+Thumbs.db
+desktop.ini

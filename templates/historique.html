@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historique &mdash; ValidStart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='rapport.css') }}">
+</head>
+<body>
+
+    <div class="bg-decor">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/" class="logo">Valid<span>Start</span></a>
+            <a href="/" class="nav-link">+ Nouvelle analyse</a>
+        </div>
+    </nav>
+
+    <main class="rapport">
+        <div class="rap-entete">
+            <h1 class="rap-titre">Historique des analyses</h1>
+            <p style="color:var(--gris);margin-top:8px;">
+                Les {{ lignes|length }} dernieres simulations enregistrees dans la base.
+            </p>
+        </div>
+
+        {% if lignes %}
+        <div class="tableau-wrap">
+            <table class="tableau">
+                <thead>
+                    <tr>
+                        <th>Projet</th>
+                        <th>Secteur</th>
+                        <th>Ville</th>
+                        <th>CA mensuel</th>
+                        <th>Verdict</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in lignes %}
+                    <tr>
+                        <td><strong>{{ l.nom_projet }}</strong></td>
+                        <td style="text-transform:capitalize;">{{ l.secteur }}</td>
+                        <td>{{ l.ville }}</td>
+                        <td>{{ "{:,}".format(l.ca_mensuel|int).replace(',', ' ') }} F</td>
+                        <td>
+                            {% if l.verdict == 'viable' %}
+                                <span class="tag-secteur">Viable</span>
+                            {% elif l.verdict == 'risque' %}
+                                <span class="carte-tag" style="color:#E8920F;background:#fef3e2;">Risque</span>
+                            {% else %}
+                                <span class="carte-tag rouge">Non viable</span>
+                            {% endif %}
+                        </td>
+                        <td style="color:var(--gris-cl);font-size:.85rem;">{{ l.date_creation }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="tableau-wrap" style="padding:48px;text-align:center;color:var(--gris);">
+            Aucune simulation enregistree pour l'instant.
+            <br><br>
+            <a href="/" class="btn-secondaire" style="display:inline-block;">Lancer une premiere analyse</a>
+        </div>
+        {% endif %}
+    </main>
+
+    <footer class="pied">
+        <p>ValidStart &middot; Projet L1 Big Data &middot; Dakar Institute of Technology &middot; 2026</p>
+    </footer>
+</body>
+</html>
